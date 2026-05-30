@@ -10,4 +10,5 @@
   <Folder Name="/tests/">
     <Project Path="Study.LabWork2.UnitTests/Study.LabWork2.UnitTests.csproj" />
   </Folder>
+  <Project Path="../../Study.LabWork3/Study.LabWork3/Study.LabWork3.csproj" />
 </Solution>
