@@ -1,77 +1,83 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 
-namespace Study.LabWork1.Features.Task1
+namespace Study.LabWork1.Features.Task1;
+
+public class RgbaPixel
 {
-    public class MySet<T>
+    public byte Red { get; }
+    public byte Green { get; }
+    public byte Blue { get; }
+    public double Alpha { get; }
+
+    public RgbaPixel(int r, int g, int b, double a)
     {
-        private readonly HashSet<T> _storage;
-        public int Size => _storage.Count;
+        Red = (byte)Math.Clamp(r, 0, 255);
+        Green = (byte)Math.Clamp(g, 0, 255);
+        Blue = (byte)Math.Clamp(b, 0, 255);
+        Alpha = Math.Clamp(a, 0.0, 1.0);
+    }
 
-        public MySet(IEnumerable<T> collection)
-        {
-            _storage = new HashSet<T>(collection ?? Enumerable.Empty<T>());
-        }
+    public override string ToString()
+    {
+        return $"rgba({Red}, {Green}, {Blue}, {Alpha.ToString("0.0#", CultureInfo.InvariantCulture)})";
+    }
 
-        public override string ToString()
-        {
-            return "{" + string.Join(", ", _storage) + "}";
-        }
+    public string ToHex()
+    {
+        byte aByte = (byte)Math.Round(Alpha * 255);
+        return $"#{Red:X2}{Green:X2}{Blue:X2}{aByte:X2}";
+    }
 
-        public static bool operator ==(MySet<T> first, MySet<T> second)
-        {
-            if (ReferenceEquals(first, second)) return true;
-            if (first is null || second is null) return false;
+    public override bool Equals(object? obj)
+    {
+        if (obj is not RgbaPixel other) return false;
+        return Red == other.Red &&
+               Green == other.Green &&
+               Blue == other.Blue &&
+               Math.Abs(Alpha - other.Alpha) < 0.001;
+    }
 
-            return first._storage.SetEquals(second._storage);
-        }
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Red, Green, Blue, Alpha);
+    }
 
-        public static bool operator !=(MySet<T> first, MySet<T> second)
-        {
-            return !(first == second);
-        }
+    public static RgbaPixel operator +(RgbaPixel x, RgbaPixel y)
+    {
+        return new RgbaPixel(x.Red + y.Red, x.Green + y.Green, x.Blue + y.Blue, x.Alpha + y.Alpha);
+    }
 
-        public override bool Equals(object obj)
-        {
-            return this == (obj as MySet<T>);
-        }
+    public static RgbaPixel operator -(RgbaPixel x, RgbaPixel y)
+    {
+        return new RgbaPixel(x.Red - y.Red, x.Green - y.Green, x.Blue - y.Blue, x.Alpha - y.Alpha);
+    }
 
-        public override int GetHashCode()
-        {
-            return _storage.Count;
-        }
+    public static RgbaPixel operator *(RgbaPixel x, RgbaPixel y)
+    {
+        return new RgbaPixel(x.Red * y.Red, x.Green * y.Green, x.Blue * y.Blue, x.Alpha * y.Alpha);
+    }
 
+    public static RgbaPixel operator *(RgbaPixel x, double num)
+    {
+        return new RgbaPixel((int)(x.Red * num), (int)(x.Green * num), (int)(x.Blue * num), x.Alpha * num);
+    }
 
-        public static MySet<T> operator |(MySet<T> first, MySet<T> second)
-        {
-            if (first is null || second is null) return new MySet<T>(null);
-            return new MySet<T>(first._storage.Union(second._storage));
-        }
+    public static RgbaPixel operator /(RgbaPixel x, double num)
+    {
+        if (Math.Abs(num) < 0.000001) throw new DivideByZeroException();
+        return new RgbaPixel((int)(x.Red / num), (int)(x.Green / num), (int)(x.Blue / num), x.Alpha / num);
+    }
 
+    public static bool operator ==(RgbaPixel? x, RgbaPixel? y)
+    {
+        if (ReferenceEquals(x, y)) return true;
+        if (x is null || y is null) return false;
+        return x.Equals(y);
+    }
 
-        public static MySet<T> operator &(MySet<T> first, MySet<T> second)
-        {
-            if (first is null || second is null) return new MySet<T>(null);
-            return new MySet<T>(first._storage.Intersect(second._storage));
-        }
-
-
-        public static MySet<T> operator -(MySet<T> first, MySet<T> second)
-        {
-            if (first is null || second is null) return new MySet<T>(null);
-            return new MySet<T>(first._storage.Except(second._storage));
-        }
-
-
-        public static MySet<T> operator /(MySet<T> first, MySet<T> second)
-        {
-            if (first is null || second is null) return new MySet<T>(null);
-
-            var union = first._storage.Union(second._storage);
-            var intersect = first._storage.Intersect(second._storage);
-
-            return new MySet<T>(union.Except(intersect));
-        }
+    public static bool operator !=(RgbaPixel? x, RgbaPixel? y)
+    {
+        return !(x == y);
     }
 }
